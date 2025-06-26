@@ -48,7 +48,7 @@ class DatabaseService {
     // Открытие/создание базы данных
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: (Database db, int version) async {
         // Создание таблицы messages при первом запуске
         await db.execute('''
@@ -62,6 +62,31 @@ class DatabaseService {
             cost REAL
           )
         ''');
+
+        // Создание таблицы auth_data для хранения данных аутентификации
+        await db.execute('''
+          CREATE TABLE auth_data (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            api_key TEXT NOT NULL,
+            pin TEXT NOT NULL,
+            api_type TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+          )
+        ''');
+      },
+      onUpgrade: (Database db, int oldVersion, int newVersion) async {
+        if (oldVersion < 2) {
+          // Добавление таблицы auth_data при обновлении с версии 1 до 2
+          await db.execute('''
+            CREATE TABLE auth_data (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              api_key TEXT NOT NULL,
+              pin TEXT NOT NULL,
+              api_type TEXT NOT NULL,
+              updated_at TEXT NOT NULL
+            )
+          ''');
+        }
       },
     );
   }
@@ -177,6 +202,82 @@ class DatabaseService {
         'total_tokens': 0,
         'model_usage': {},
       };
+    }
+  }
+
+  // Методы для работы с данными аутентификации
+
+  // Метод сохранения данных аутентификации
+  Future<void> saveAuthData(String apiKey, String pin, String apiType) async {
+    try {
+      final db = await database;
+
+      // Очистка предыдущих данных аутентификации
+      await db.delete('auth_data');
+
+      // Вставка новых данных
+      await db.insert(
+        'auth_data',
+        {
+          'api_key': apiKey,
+          'pin': pin,
+          'api_type': apiType,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    } catch (e) {
+      debugPrint('Error saving auth data: $e');
+    }
+  }
+
+  // Метод получения данных аутентификации
+  Future<Map<String, dynamic>?> getAuthData() async {
+    try {
+      final db = await database;
+
+      // Запрос данных из таблицы auth_data
+      final List<Map<String, dynamic>> maps = await db.query('auth_data');
+
+      if (maps.isNotEmpty) {
+        return {
+          'apiKey': maps[0]['api_key'] as String,
+          'pin': maps[0]['pin'] as String,
+          'apiType': maps[0]['api_type'] as String,
+          'updatedAt': maps[0]['updated_at'] as String,
+        };
+      }
+
+      return null;
+    } catch (e) {
+      debugPrint('Error getting auth data: $e');
+      return null;
+    }
+  }
+
+  // Метод проверки наличия данных аутентификации
+  Future<bool> hasAuthData() async {
+    try {
+      final db = await database;
+
+      // Запрос количества записей в таблице auth_data
+      final count = Sqflite.firstIntValue(
+          await db.rawQuery('SELECT COUNT(*) FROM auth_data'));
+
+      return (count ?? 0) > 0;
+    } catch (e) {
+      debugPrint('Error checking auth data: $e');
+      return false;
+    }
+  }
+
+  // Метод удаления данных аутентификации
+  Future<void> clearAuthData() async {
+    try {
+      final db = await database;
+      await db.delete('auth_data');
+    } catch (e) {
+      debugPrint('Error clearing auth data: $e');
     }
   }
 }

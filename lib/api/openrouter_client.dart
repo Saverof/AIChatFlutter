@@ -6,15 +6,26 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 // Import package for working with .env files
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+// Import auth service
+import '../services/auth_service.dart';
+// Import auth data model
+import '../models/auth_data.dart';
 
 // Класс клиента для работы с API OpenRouter
 class OpenRouterClient {
   // API ключ для авторизации
-  final String? apiKey;
+  String? apiKey;
   // Базовый URL API
-  final String? baseUrl;
+  String? baseUrl;
   // Заголовки HTTP запросов
-  final Map<String, String> headers;
+  Map<String, String> headers = {
+    'Content-Type': 'application/json', // Указание типа контента
+    'X-Title': 'AI Chat Flutter', // Название приложения
+  };
+  // Сервис аутентификации
+  final AuthService _authService = AuthService();
+  // Флаг инициализации
+  bool _isInitialized = false;
 
   // Единственный экземпляр класса (Singleton)
   static final OpenRouterClient _instance = OpenRouterClient._internal();
@@ -25,36 +36,70 @@ class OpenRouterClient {
   }
 
   // Приватный конструктор для реализации Singleton
-  OpenRouterClient._internal()
-      : apiKey =
-            dotenv.env['OPENROUTER_API_KEY'], // Получение API ключа из .env
-        baseUrl = dotenv.env['BASE_URL'], // Получение базового URL из .env
-        headers = {
-          'Authorization':
-              'Bearer ${dotenv.env['OPENROUTER_API_KEY']}', // Заголовок авторизации
-          'Content-Type': 'application/json', // Указание типа контента
-          'X-Title': 'AI Chat Flutter', // Название приложения
-        } {
+  OpenRouterClient._internal() {
     // Инициализация клиента
     _initializeClient();
   }
 
   // Метод инициализации клиента
-  void _initializeClient() {
+  Future<void> _initializeClient() async {
     try {
       if (kDebugMode) {
         print('Initializing OpenRouterClient...');
-        print('Base URL: $baseUrl');
+      }
+
+      // Получение данных аутентификации из базы данных
+      final authData = await _authService.getAuthData();
+
+      if (authData != null) {
+        // Использование ключа API из базы данных
+        apiKey = authData.apiKey;
+
+        // Определение базового URL в зависимости от типа API
+        if (authData.apiType == 'VSEGPT') {
+          baseUrl = 'https://api.vsegpt.ru';
+        } else {
+          baseUrl = 'https://openrouter.ai/api/v1';
+        }
+
+        // Обновление заголовков с ключом API
+        headers['Authorization'] = 'Bearer $apiKey';
+
+        if (kDebugMode) {
+          print('Using API key from database');
+          print('API Type: ${authData.apiType}');
+          print('Base URL: $baseUrl');
+        }
+      } else {
+        // Использование ключа API из .env файла (для обратной совместимости)
+        apiKey = dotenv.env['OPENROUTER_API_KEY'];
+        baseUrl = dotenv.env['BASE_URL'];
+
+        if (apiKey != null) {
+          headers['Authorization'] = 'Bearer $apiKey';
+        }
+
+        if (kDebugMode) {
+          print('Using API key from .env file');
+          print('Base URL: $baseUrl');
+        }
       }
 
       // Проверка наличия API ключа
       if (apiKey == null) {
-        throw Exception('OpenRouter API key not found in .env');
+        if (kDebugMode) {
+          print('API key not found');
+        }
       }
+
       // Проверка наличия базового URL
       if (baseUrl == null) {
-        throw Exception('BASE_URL not found in .env');
+        if (kDebugMode) {
+          print('Base URL not found');
+        }
       }
+
+      _isInitialized = true;
 
       if (kDebugMode) {
         print('OpenRouterClient initialized successfully');
@@ -64,13 +109,50 @@ class OpenRouterClient {
         print('Error initializing OpenRouterClient: $e');
         print('Stack trace: $stackTrace');
       }
-      rethrow;
+    }
+  }
+
+  // Метод для обновления ключа API
+  Future<void> updateApiKey(String newApiKey, String apiType) async {
+    apiKey = newApiKey;
+
+    // Определение базового URL в зависимости от типа API
+    if (apiType == 'VSEGPT') {
+      baseUrl = 'https://api.vsegpt.ru';
+    } else {
+      baseUrl = 'https://openrouter.ai/api/v1';
+    }
+
+    // Обновление заголовков с новым ключом API
+    headers['Authorization'] = 'Bearer $newApiKey';
+
+    if (kDebugMode) {
+      print('API key updated');
+      print('API Type: $apiType');
+      print('Base URL: $baseUrl');
+    }
+
+    _isInitialized = true;
+  }
+
+  // Метод для проверки инициализации клиента
+  Future<void> ensureInitialized() async {
+    if (!_isInitialized) {
+      await _initializeClient();
     }
   }
 
   // Метод получения списка доступных моделей
   Future<List<Map<String, dynamic>>> getModels() async {
     try {
+      // Проверка инициализации клиента
+      await ensureInitialized();
+
+      // Проверка наличия API ключа и базового URL
+      if (apiKey == null || baseUrl == null) {
+        return _getDefaultModels();
+      }
+
       // Выполнение GET запроса для получения моделей
       final response = await http.get(
         Uri.parse('$baseUrl/models'),
@@ -135,6 +217,14 @@ class OpenRouterClient {
   // Метод отправки сообщения через API
   Future<Map<String, dynamic>> sendMessage(String message, String model) async {
     try {
+      // Проверка инициализации клиента
+      await ensureInitialized();
+
+      // Проверка наличия API ключа и базового URL
+      if (apiKey == null || baseUrl == null) {
+        return {'error': 'API key or Base URL not configured'};
+      }
+
       // Подготовка данных для отправки
       final data = {
         'model': model, // Модель для генерации ответа
@@ -186,6 +276,14 @@ class OpenRouterClient {
   // Метод получения текущего баланса
   Future<String> getBalance() async {
     try {
+      // Проверка инициализации клиента
+      await ensureInitialized();
+
+      // Проверка наличия API ключа и базового URL
+      if (apiKey == null || baseUrl == null) {
+        return baseUrl?.contains('vsegpt.ru') == true ? '0.00₽' : '\$0.00';
+      }
+
       // Выполнение GET запроса для получения баланса
       final response = await http.get(
         Uri.parse(baseUrl?.contains('vsegpt.ru') == true
@@ -241,5 +339,26 @@ class OpenRouterClient {
       }
       return '0.00';
     }
+  }
+
+  // Метод получения моделей по умолчанию
+  List<Map<String, dynamic>> _getDefaultModels() {
+    return [
+      {
+        'id': 'deepseek-coder',
+        'name': 'DeepSeek',
+        'pricing': {'prompt': '0.0', 'completion': '0.0'}
+      },
+      {
+        'id': 'claude-3-sonnet',
+        'name': 'Claude 3.5 Sonnet',
+        'pricing': {'prompt': '0.0', 'completion': '0.0'}
+      },
+      {
+        'id': 'gpt-3.5-turbo',
+        'name': 'GPT-3.5 Turbo',
+        'pricing': {'prompt': '0.0', 'completion': '0.0'}
+      },
+    ];
   }
 }

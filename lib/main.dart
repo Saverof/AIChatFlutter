@@ -8,8 +8,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 // Импорт кастомного провайдера для управления состоянием чата
 import 'providers/chat_provider.dart';
-// Импорт основного экрана чата
-import 'screens/chat_screen.dart';
+// Импорт экрана аутентификации
+import 'screens/auth_screen.dart';
 
 // Виджет для обработки и отлова ошибок в приложении
 class ErrorBoundaryWidget extends StatelessWidget {
@@ -185,7 +185,7 @@ class MyApp extends StatelessWidget {
             foregroundColor: Colors.white, // Цвет текста
           ),
           // Настройка темы диалогов
-          dialogTheme: const DialogTheme(
+          dialogTheme: const DialogThemeData(
             backgroundColor: Color(0xFF333333), // Цвет фона
             titleTextStyle: TextStyle(
               color: Colors.white, // Цвет заголовка
@@ -234,7 +234,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
         // Основной экран приложения
-        home: const ChatScreen(),
+        home: const AuthScreen(),
       ),
     );
   }
