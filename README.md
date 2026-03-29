@@ -1,146 +1,165 @@
-# AIChatFlutter - Чат-приложение с ИИ
+# **AIChatFlutter - AI Chat Application**
 
-AIChatFlutter - это мультиплатформенное приложение для общения с искусственным интеллектом, разработанное с использованием Flutter. Приложение поддерживает работу как с OpenRouter.ai, так и с VseGPT.ru, предоставляя гибкие возможности для взаимодействия с различными языковыми моделями.
+AIChatFlutter is a **cross-platform AI chat application** built with Flutter. It supports **OpenRouter.ai** and **VseGPT.ru**, offering flexible interaction with a variety of language models.
 
-## Поддержка API
+---
 
-### OpenRouter.ai
-- Баланс отображается в долларах ($)
-- Стоимость сообщений рассчитывается в долларах за миллион токенов
-- Широкий выбор языковых моделей от разных провайдеров
-- Единый API для доступа к различным моделям
+## **Supported APIs**
 
-### VseGPT.ru
-- Баланс отображается в рублях (₽)
-- Стоимость сообщений рассчитывается в рублях за тысячу токенов
-- Доступ к популярным моделям с оплатой в рублях
-- Оптимизировано для пользователей из России
+### **OpenRouter.ai**
+- Balance displayed in **USD ($)**
+- Message costs calculated in **USD per million tokens**
+- Wide selection of language models from multiple providers
+- Unified API for accessing different models
 
-## Структура проекта
+### **VseGPT.ru**
+- Balance displayed in **RUB (₽)**
+- Message costs calculated in **RUB per thousand tokens**
+- Access to popular models with ruble-based pricing
+- Optimized for users in Russia
 
-Основные директории и файлы:
+---
 
-- `lib/` - Основной код приложения
-  - `main.dart` - Точка входа в приложение
-  - `api/` - Модули для работы с API
-    - `openrouter_client.dart` - Универсальный клиент для работы с OpenRouter и VseGPT
-  - `models/` - Модели данных
-    - `message.dart` - Модель сообщения с поддержкой токенов и стоимости
-    - `auth_data.dart` - Модель данных аутентификации
-  - `providers/` - State management
-    - `chat_provider.dart` - Провайдер для управления состоянием чата
-  - `services/` - Сервисы
-    - `database_service.dart` - Сервис для работы с локальной базой данных
-    - `analytics_service.dart` - Сервис для сбора и анализа статистики
-    - `auth_service.dart` - Сервис для аутентификации и проверки API ключей
-  - `screens/` - Экраны приложения
-    - `chat_screen.dart` - Основной экран чата
-    - `auth_screen.dart` - Экран аутентификации с PIN-кодом
-    - `api_key_screen.dart` - Экран ввода ключа API
-- `android/`, `ios/`, `windows/`, `linux/` - Платформо-зависимые конфигурации
-- `assets/` - Ресурсы приложения
-- `pubspec.yaml` - Зависимости проекта
+## **Project Structure**
 
-## Основные модули
+### **Main Directories and Files**
 
-### ChatProvider
-- Управление состоянием чата и историей сообщений
-- Взаимодействие с API (OpenRouter/VseGPT)
-- Отслеживание баланса и расходов
-- Управление моделями и их настройками
+- **`lib/`** – Core application code
+  - `main.dart` – Application entry point
+  - **`api/`** – API interaction modules
+    - `openrouter_client.dart` – Universal client for OpenRouter and VseGPT
+  - **`models/`** – Data models
+    - `message.dart` – Message model with token and cost support
+    - `auth_data.dart` – Authentication data model
+  - **`providers/`** – State management
+    - `chat_provider.dart` – Provider for managing chat state
+  - **`services/`** – Core services
+    - `database_service.dart` – Local database service
+    - `analytics_service.dart` – Analytics and statistics service
+    - `auth_service.dart` – Authentication and API key validation service
+  - **`screens/`** – Application screens
+    - `chat_screen.dart` – Main chat screen
+    - `auth_screen.dart` – PIN-based authentication screen
+    - `api_key_screen.dart` – API key input screen
+- **`android/`**, **`ios/`**, **`windows/`**, **`linux/`** – Platform-specific configurations
+- **`assets/`** – Application resources
+- **`pubspec.yaml`** – Project dependencies
 
-### Message
-- Хранение текста сообщений
-- Учет использованных токенов
-- Расчет стоимости сообщений
-- Метаданные (временные метки, модель)
+---
 
-### OpenRouterClient
-- Унифицированный интерфейс для работы с API
-- Автоматическое определение провайдера (OpenRouter/VseGPT)
-- Форматирование цен в соответствии с провайдером
-- Обработка ошибок и повторные попытки
-- Поддержка ключей API из базы данных
+## **Core Modules**
 
-### AuthService
-- Проверка валидности API ключей
-- Определение типа API ключа (OpenRouter/VseGPT)
-- Генерация и проверка PIN-кода
-- Управление данными аутентификации
+### **ChatProvider**
+- Manages chat state and message history
+- Interacts with APIs (OpenRouter/VseGPT)
+- Tracks balance and expenses
+- Manages models and their settings
 
-### DatabaseService
-- Локальное хранение истории сообщений
-- Кэширование данных
-- Экспорт истории
-- Статистика использования
-- Хранение данных аутентификации
+### **Message**
+- Stores message text
+- Tracks used tokens
+- Calculates message cost
+- Metadata (timestamps, model)
 
-### AnalyticsService
-- Сбор статистики использования
-- Анализ эффективности моделей
-- Отслеживание времени ответа
-- Анализ использования токенов
+### **OpenRouterClient**
+- Unified interface for API interaction
+- Automatic provider detection (OpenRouter/VseGPT)
+- Price formatting based on provider
+- Error handling and retry logic
+- Supports API keys from local storage
 
-## Функциональность приложения
+### **AuthService**
+- Validates API keys
+- Determines provider type (OpenRouter/VseGPT)
+- Generates and verifies PIN codes
+- Manages authentication data
 
-### Основные возможности
-- Обмен сообщениями с различными языковыми моделями
-- Выбор модели из доступного списка
-- Отображение баланса в соответствующей валюте ($/₽)
-- Подсчет стоимости каждого сообщения
-- Отслеживание использования токенов
-- Система аутентификации с PIN-кодом
+### **DatabaseService**
+- Local storage of message history
+- Data caching
+- History export
+- Usage statistics
+- Authentication data storage
 
-### Система аутентификации
-- Ввод ключа API при первом запуске
-- Автоматическое определение типа ключа (OpenRouter/VseGPT)
-- Проверка баланса ключа API
-- Генерация 4-значного PIN-кода для последующего входа
-- Возможность сброса ключа API
+### **AnalyticsService**
+- Collects usage statistics
+- Analyzes model efficiency
+- Tracks response time
+- Monitors token usage
 
-### Управление чатом
-- Сохранение истории сообщений
-- Экспорт истории в JSON
-- Копирование сообщений в буфер обмена
-- Очистка истории
+---
+## **Application Features**
 
-### Аналитика
-- Статистика использования моделей
-- Анализ времени ответа
-- Отслеживание расхода токенов
-- Экспорт аналитических данных
+### **Core Capabilities**
+- Messaging with various language models
+- Model selection from available options
+- Balance display in corresponding currency ($/₽)
+- Cost calculation for each message
+- Token usage tracking
+- PIN-based authentication system
 
-### Интерфейс
-- Темный режим
-- Адаптивный дизайн
-- Поддержка русского и английского языков
-- Информативные уведомления
+---
+### **Authentication System**
+- API key input on first launch
+- Automatic provider detection (OpenRouter/VseGPT)
+- API key balance verification
+- 4-digit PIN generation for future logins
+- API key reset option
 
-### Технические особенности
-- Кроссплатформенность (Android, iOS, Windows, Linux)
-- Локальное хранение данных
-- Оффлайн доступ к истории
-- Обработка ошибок сети
+---
+### **Chat Management**
+- Message history storage
+- JSON-based history export
+- Message copying to clipboard
+- History clearing
 
-## Начало работы
+---
+### **Analytics**
+- Model usage statistics
+- Response time analysis
+- Token consumption tracking
+- Analytics data export
 
-1. Клонируйте репозиторий
-2. Следуйте инструкциям в [INSTALL.md](INSTALL.md) для установки зависимостей и запуска
-3. При первом запуске введите ключ API от OpenRouter.ai или VseGPT.ru
-4. Запомните сгенерированный PIN-код для последующего входа
+---
+### **UI/UX Highlights**
+- Dark mode
+- Adaptive design
+- Russian and English language support
+- Informative notifications
 
-## Конфигурация
+---
+### **Technical Features**
+- **Cross-platform** compatibility (Android, iOS, Windows, Linux)
+- Local data storage
+- Offline access to history
+- Network error handling
 
-Приложение поддерживает два способа аутентификации:
+---
+## **Getting Started**
 
-### Через интерфейс приложения (рекомендуется)
-- При первом запуске введите ключ API в соответствующее поле
-- Система автоматически определит тип ключа и настроит приложение
-- Для последующего входа используйте сгенерированный PIN-код
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
+2. Follow the instructions in **[INSTALL.md](INSTALL.md)** to install dependencies and run the app.
+3. On first launch, enter your **OpenRouter.ai** or **VseGPT.ru** API key.
+4. Remember the generated **PIN code** for future logins.
 
-### Через файл .env (альтернативный способ)
-Для работы приложения можно указать в файле `.env`:
-- `OPENROUTER_API_KEY` - API ключ от OpenRouter.ai или VseGPT.ru
-- `BASE_URL` - URL API (https://openrouter.ai/api/v1 или https://api.vsetgpt.ru/v1)
-- `MAX_TOKENS` - Максимальное количество токенов для ответа
-- `TEMPERATURE` - Температура генерации (0.0 - 1.0)
+---
+## **Configuration**
+
+The app supports two authentication methods:
+
+---
+### **Via Application Interface (Recommended)**
+- Enter your API key in the designated field on first launch.
+- The system automatically detects the provider type and configures the app.
+- Use the generated **PIN code** for future logins.
+
+---
+### **Via `.env` File (Alternative Method)**
+To configure the app, add the following variables to `.env`:
+- `OPENROUTER_API_KEY` – API key for OpenRouter.ai or VseGPT.ru
+- `BASE_URL` – API URL (`https://openrouter.ai/api/v1` or `https://api.vsetgpt.ru/v1`)
+- `MAX_TOKENS` – Maximum tokens for responses
+- `TEMPERATURE` – Generation temperature (0.0–1.0)
